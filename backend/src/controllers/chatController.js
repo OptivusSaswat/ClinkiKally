@@ -27,7 +27,6 @@ export const chatController = {
         });
       }
 
-      // Generate session ID if not provided
       const effectiveSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       const result = await orchestrator.processQuery(trimmedMessage, effectiveSessionId);

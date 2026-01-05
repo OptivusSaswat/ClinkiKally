@@ -1,6 +1,7 @@
 import { queryAnalyzerAgent } from './queryAnalyzerAgent.js';
 import { productRecommenderAgent } from './productRecommenderAgent.js';
 import { blogSolutionFinderAgent } from './blogSolutionFinderAgent.js';
+import { webSearchAgent } from './webSearchAgent.js';
 import { qnaAgent } from './qnaAgent.js';
 import { AgentType } from './baseAgent.js';
 
@@ -14,28 +15,41 @@ class AgentOrchestrator {
     const history = this.conversationHistory.get(sessionId) || [];
 
     try {
-      // Step 1: Analyze the query to determine which agent to use
       console.log('[Orchestrator] Analyzing query...');
       const analysis = await queryAnalyzerAgent.analyze(query);
       console.log('[Orchestrator] Analysis result:', analysis);
 
-      // Step 2: Route to the appropriate specialist agent
       let specialistResponse;
-      if (analysis.agentType === AgentType.PRODUCT_RECOMMENDER) {
-        console.log('[Orchestrator] Routing to Product Recommender Agent');
-        specialistResponse = await productRecommenderAgent.process(
-          query,
-          analysis.extractedIntent
-        );
-      } else {
-        console.log('[Orchestrator] Routing to Blog Solution Finder Agent');
-        specialistResponse = await blogSolutionFinderAgent.process(
-          query,
-          analysis.extractedIntent
-        );
+      switch (analysis.agentType) {
+        case AgentType.PRODUCT_RECOMMENDER:
+          console.log('[Orchestrator] Routing to Product Recommender Agent');
+          specialistResponse = await productRecommenderAgent.process(
+            query,
+            analysis.extractedIntent
+          );
+          break;
+        case AgentType.BLOG_SOLUTION_FINDER:
+          console.log('[Orchestrator] Routing to Blog Solution Finder Agent');
+          specialistResponse = await blogSolutionFinderAgent.process(
+            query,
+            analysis.extractedIntent
+          );
+          break;
+        case AgentType.WEB_SEARCH:
+          console.log('[Orchestrator] Routing to Web Search Agent');
+          specialistResponse = await webSearchAgent.process(
+            query,
+            analysis.extractedIntent
+          );
+          break;
+        default:
+          console.log('[Orchestrator] Defaulting to Blog Solution Finder Agent');
+          specialistResponse = await blogSolutionFinderAgent.process(
+            query,
+            analysis.extractedIntent
+          );
       }
 
-      // Step 3: Generate final response using QnA Agent
       let finalResponse;
       if (specialistResponse.success) {
         console.log('[Orchestrator] Generating final response with QnA Agent');
@@ -53,7 +67,6 @@ class AgentOrchestrator {
         );
       }
 
-      // Update conversation history
       this.updateHistory(sessionId, query, finalResponse.response);
 
       const processingTime = Date.now() - startTime;
@@ -74,11 +87,7 @@ class AgentOrchestrator {
             sourcesCount: specialistResponse.retrievedCount || 0,
           },
         },
-        // Optionally include sources for transparency
-        sources: specialistResponse.context?.slice(0, 3).map(s => ({
-          title: s.productName || s.blogTitle,
-          type: analysis.agentType === AgentType.PRODUCT_RECOMMENDER ? 'product' : 'blog',
-        })),
+        sources: this.formatSources(specialistResponse, analysis.agentType),
       };
     } catch (error) {
       console.error('[Orchestrator] Error:', error);
@@ -102,7 +111,6 @@ class AgentOrchestrator {
       timestamp: new Date().toISOString(),
     });
 
-    // Keep only last 10 exchanges
     if (history.length > 10) {
       history.shift();
     }
@@ -116,6 +124,28 @@ class AgentOrchestrator {
 
   clearHistory(sessionId) {
     this.conversationHistory.delete(sessionId);
+  }
+
+  formatSources(specialistResponse, agentType) {
+    if (!specialistResponse.context || specialistResponse.context.length === 0) {
+      if (specialistResponse.sources) {
+        return specialistResponse.sources.slice(0, 3);
+      }
+      return [];
+    }
+
+    return specialistResponse.context.slice(0, 3).map(s => {
+      switch (agentType) {
+        case AgentType.PRODUCT_RECOMMENDER:
+          return { title: s.productName || 'Product', type: 'product' };
+        case AgentType.BLOG_SOLUTION_FINDER:
+          return { title: s.blogTitle || 'Article', type: 'blog' };
+        case AgentType.WEB_SEARCH:
+          return { title: s.title || 'Web Result', url: s.url, type: 'web' };
+        default:
+          return { title: s.title || s.productName || s.blogTitle || 'Source', type: 'unknown' };
+      }
+    });
   }
 }
 

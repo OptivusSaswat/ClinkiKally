@@ -27,7 +27,6 @@ export function loadProductDatabase() {
         rowData[header] = row[index] || '';
       });
 
-      // Create a rich text representation of the product
       const contentParts = [];
       for (const [key, value] of Object.entries(rowData)) {
         if (value && value.toString().trim()) {

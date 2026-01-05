@@ -28,7 +28,6 @@ class ProductRecommenderAgent {
 
   async process(query, extractedIntent) {
     try {
-      // Perform RAG - search for relevant products
       const relevantProducts = await vectorSearchService.searchProducts(
         extractedIntent || query,
         10
@@ -42,7 +41,6 @@ class ProductRecommenderAgent {
         };
       }
 
-      // Format context from retrieved products
       const context = relevantProducts.map((product, index) => ({
         rank: index + 1,
         content: product.content,
@@ -56,7 +54,6 @@ class ProductRecommenderAgent {
         .map(p => `[Product ${p.rank}]\n${p.content}\nSimilarity Score: ${parseFloat(p.similarity).toFixed(3)}`)
         .join('\n\n---\n\n');
 
-      // Generate response using LLM with context
       const messages = [
         new SystemMessage(SYSTEM_PROMPT),
         new HumanMessage(`User Query: ${query}

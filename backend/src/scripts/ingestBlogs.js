@@ -10,21 +10,17 @@ async function ingestBlogs() {
   console.log('Starting blog ingestion...');
 
   try {
-    // Load blog documents
     console.log('Loading blog documents...');
     const documents = loadBlogDocuments();
     console.log(`Loaded ${documents.length} blogs`);
 
-    // Chunk documents
     console.log('Chunking documents...');
     const chunkedDocs = await chunkDocuments(documents);
     console.log(`Created ${chunkedDocs.length} chunks`);
 
-    // Clear existing blog embeddings
     console.log('Clearing existing blog embeddings...');
     await prisma.$executeRaw`TRUNCATE TABLE blog_embeddings`;
 
-    // Process in batches
     console.log('Generating embeddings and storing...');
     for (let i = 0; i < chunkedDocs.length; i += BATCH_SIZE) {
       const batch = chunkedDocs.slice(i, i + BATCH_SIZE);
@@ -33,11 +29,9 @@ async function ingestBlogs() {
 
       console.log(`Processing batch ${batchNumber}/${totalBatches}...`);
 
-      // Generate embeddings for batch
       const texts = batch.map(doc => doc.content);
       const embeddings = await embeddingService.embedDocuments(texts);
 
-      // Insert into database
       for (let j = 0; j < batch.length; j++) {
         const doc = batch[j];
         const embedding = embeddings[j];
@@ -61,7 +55,6 @@ async function ingestBlogs() {
         `;
       }
 
-      // Add delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 

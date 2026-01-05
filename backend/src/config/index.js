@@ -4,6 +4,7 @@ export const config = {
   port: process.env.PORT || 3000,
   databaseUrl: process.env.DATABASE_URL,
   geminiApiKey: process.env.GEMINI_API_KEY,
+  exaApiKey: process.env.EXA_API_KEY,
 
   // Embedding configuration
   embedding: {

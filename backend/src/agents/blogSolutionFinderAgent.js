@@ -28,7 +28,6 @@ class BlogSolutionFinderAgent {
 
   async process(query, extractedIntent) {
     try {
-      // Perform RAG - search for relevant blog content
       const relevantBlogs = await vectorSearchService.searchBlogs(
         extractedIntent || query,
         8
@@ -42,7 +41,6 @@ class BlogSolutionFinderAgent {
         };
       }
 
-      // Format context from retrieved blogs
       const context = relevantBlogs.map((blog, index) => ({
         rank: index + 1,
         content: blog.content,
@@ -60,7 +58,6 @@ Tags: ${b.tags?.join(', ') || 'N/A'}
 Similarity Score: ${parseFloat(b.similarity).toFixed(3)}`)
         .join('\n\n---\n\n');
 
-      // Generate response using LLM with context
       const messages = [
         new SystemMessage(SYSTEM_PROMPT),
         new HumanMessage(`User Query: ${query}

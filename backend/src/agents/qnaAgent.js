@@ -23,10 +23,9 @@ class QnAAgent {
 
   async generateResponse(query, specialistResponse, agentType, conversationHistory = []) {
     try {
-      // Build conversation context
       const historyText = conversationHistory.length > 0
         ? conversationHistory
-            .slice(-5) // Keep last 5 exchanges
+            .slice(-5)
             .map(h => `User: ${h.user}\nAssistant: ${h.assistant}`)
             .join('\n\n')
         : 'No previous conversation.';

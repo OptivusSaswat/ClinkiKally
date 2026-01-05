@@ -13,5 +13,5 @@ export function createLLM(options = {}) {
 export const AgentType = {
   PRODUCT_RECOMMENDER: 'product_recommender',
   BLOG_SOLUTION_FINDER: 'blog_solution_finder',
-  GENERAL: 'general',
+  WEB_SEARCH: 'web_search',
 };

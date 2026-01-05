@@ -10,21 +10,17 @@ async function ingestProducts() {
   console.log('Starting product ingestion...');
 
   try {
-    // Load product documents from xlsx
     console.log('Loading product database...');
     const documents = loadProductDatabase();
     console.log(`Loaded ${documents.length} products`);
 
-    // Chunk documents
     console.log('Chunking documents...');
     const chunkedDocs = await chunkDocuments(documents);
     console.log(`Created ${chunkedDocs.length} chunks`);
 
-    // Clear existing product embeddings
     console.log('Clearing existing product embeddings...');
     await prisma.$executeRaw`TRUNCATE TABLE product_embeddings`;
 
-    // Process in batches
     console.log('Generating embeddings and storing...');
     for (let i = 0; i < chunkedDocs.length; i += BATCH_SIZE) {
       const batch = chunkedDocs.slice(i, i + BATCH_SIZE);
@@ -33,11 +29,9 @@ async function ingestProducts() {
 
       console.log(`Processing batch ${batchNumber}/${totalBatches}...`);
 
-      // Generate embeddings for batch
       const texts = batch.map(doc => doc.content);
       const embeddings = await embeddingService.embedDocuments(texts);
 
-      // Insert into database
       for (let j = 0; j < batch.length; j++) {
         const doc = batch[j];
         const embedding = embeddings[j];
@@ -60,7 +54,6 @@ async function ingestProducts() {
         `;
       }
 
-      // Add delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 

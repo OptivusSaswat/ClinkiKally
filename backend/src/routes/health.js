@@ -5,7 +5,6 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    // Check database connection
     await prisma.$queryRaw`SELECT 1`;
 
     res.json({
