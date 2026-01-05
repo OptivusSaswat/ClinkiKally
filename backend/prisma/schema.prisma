@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+// Product Recommendation Agent - vectors from product database (xlsx)
+model ProductEmbedding {
+  id        String                 @id @default(cuid())
+  content   String                 @db.Text
+  embedding Unsupported("vector(3072)")
+  metadata  Json?
+
+  // Product-specific fields for filtering
+  productName String?
+  brand       String?
+  category    String?
+  concerns    String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("product_embeddings")
+}
+
+// Blog Reader Agent - vectors from skin/hair care guide blogs
+model BlogEmbedding {
+  id        String                 @id @default(cuid())
+  content   String                 @db.Text
+  embedding Unsupported("vector(3072)")
+  metadata  Json?
+
+  // Blog-specific fields for filtering
+  blogTitle   String?
+  author      String?
+  tags        String[]
+  sourceLink  String?
+  blogFolder  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_embeddings")
+}
