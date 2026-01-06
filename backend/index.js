@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { config } from './src/config/index.js';
 import { prisma } from './src/config/database.js';
 import healthRoutes from './src/routes/health.js';
@@ -8,6 +9,7 @@ import searchRoutes from './src/routes/search.js';
 import chatRoutes from './src/routes/chat.js';
 
 const app = express();
+const __dirname = path.resolve();
 
 app.use(cors());
 app.use(express.json());
@@ -17,9 +19,18 @@ app.use('/api/health', healthRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/chat', chatRoutes);
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the Clinikally API' });
-});
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to the Clinikally API' });
+  });
+}
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
