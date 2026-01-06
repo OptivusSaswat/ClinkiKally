@@ -9,9 +9,9 @@
     "dev:backend": "cd backend && npm run dev",
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "cd frontend && npm install && npm run build",
-    "build:backend": "cd backend && npm install && npm run prisma:generate",
+    "build:backend": "cd backend && npm install && npm run db:generate",
     "start": "cd backend && npm run start",
-    "prisma:generate": "cd backend && npm run db:generate",
-    "prisma:push": "cd backend && npm run db:push"
+    "db:generate": "cd backend && npm run db:generate",
+    "db:push": "cd backend && npm run db:push"
   }
 }
